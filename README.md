@@ -7,7 +7,6 @@ Powershell scripts to install Winget Packages with SCCM/Intune (or similar) or e
 - For install command, put this command line:  
 `powershell.exe -ExecutionPolicy bypass -File winget-install.ps1 -AppIDs Notepad++.Notepad++`
 
-![image](https://user-images.githubusercontent.com/96626929/152222570-da527307-ecc9-4fc2-b83e-7891ffae36ee.png)
 
 ### Intune
 - Create Intunewin with the "winget-install.ps1" script
@@ -18,7 +17,7 @@ Powershell scripts to install Winget Packages with SCCM/Intune (or similar) or e
 ### Use Winget native parameters
 You can add custom parameter in your `AppIDs` argument. Don't forget to escape the quote:  
 `powershell.exe -Executionpolicy Bypass -File winget-install.ps1 -AppIDs "Citrix.Workspace --override \"/silent /noreboot /includeSSON /forceinstall\""`  
-Details: https://github.com/Romanitho/Winget-Install/discussions/20
+Details: https://github.com/user1722/Winget-Install/discussions/20
 
 ### Multiple apps at once
 - Run this command  
@@ -30,7 +29,7 @@ Details: https://github.com/Romanitho/Winget-Install/discussions/20
 `$AppToDetect = "Notepad++.Notepad++"`
 
 ## Updates
-https://github.com/Romanitho/Winget-autoupdate
+https://github.com/user1722/Winget-autoupdate
 
 ## Uninstall
 - To uninstall an app, you can use:  
@@ -55,11 +54,8 @@ Just put the script with the **AppID** followed by the suffix to be considered i
 > Runs during uninstall (before uninstall check): `AppID-uninstall.ps1`  
 > Runs after uninstall has been confirmed: `AppID-uninstalled.ps1`  
 
-If you're using [**WAU** (Winget-AutoUpdate)](https://github.com/Romanitho/Winget-AutoUpdate) they get copied to the **WAU mods** directory (except `-installed-once.ps1/-preuninstall.ps1/-uninstall.ps1/-uninstalled.ps1`) and also runs when upgrading apps in **WAU**.
+If you're using [**WAU** (Winget-AutoUpdate)](https://github.com/user1722/Winget-AutoUpdate) they get copied to the **WAU mods** directory (except `-installed-once.ps1/-preuninstall.ps1/-uninstall.ps1/-uninstalled.ps1`) and also runs when upgrading apps in **WAU**.
 
 `AppID-installed-once.ps1` runs instead of `AppID-installed.ps1` from **Winget-Install**.  
 
 They are deleted from **WAU** on an uninstall (if deployed from **Winget-Install**)
-
-## Other ideas and approaches
-https://github.com/o-l-a-v/winget-intune-win32

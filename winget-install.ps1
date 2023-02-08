@@ -5,7 +5,7 @@ Can be used standalone.
 
 .DESCRIPTION
 Allow to run Winget in System Context to install your apps.
-https://github.com/Romanitho/Winget-Install
+https://github.com/user1722/Winget-Install
 
 .PARAMETER AppIDs
 Forward Winget App ID to install. For multiple apps, separate with ","
@@ -17,7 +17,7 @@ To uninstall app. Works with AppIDs
 Used to specify logpath. Default is same folder as Winget-Autoupdate project
 
 .PARAMETER WAUWhiteList
-Adds the app to the Winget-AutoUpdate White List. More info: https://github.com/Romanitho/Winget-AutoUpdate
+Adds the app to the Winget-AutoUpdate White List. More info: https://github.com/user1722/Winget-AutoUpdate
 If '-Uninstall' is used, it removes the app from WAU White List.
 
 .EXAMPLE
@@ -417,8 +417,8 @@ Write-Host "`t        888d88888b888 888 888  88888 888  888 888" -ForegroundColo
 Write-Host "`t        88888P Y88888 888 888    888 888  888 888" -ForegroundColor Magenta
 Write-Host "`t        8888P   Y8888 888 Y88b  d88P Y88b 888 888" -ForegroundColor Cyan
 Write-Host "`t        888P     Y888 888  `"Y8888P88  `"Y88888 888`n" -ForegroundColor Cyan
-Write-Host "`t       https://github.com/Romanitho/Winget-Install" -ForegroundColor Magenta
-Write-Host "`t     https://github.com/Romanitho/Winget-Install-GUI`n" -ForegroundColor Cyan
+Write-Host "`t       https://github.com/user1722/Winget-Install" -ForegroundColor Magenta
+Write-Host "`t     https://github.com/user1722/Winget-Install-GUI`n" -ForegroundColor Cyan
 Write-Host "`t_________________________________________________________`n`n"
 
 #Run Init Function
