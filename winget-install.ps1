@@ -172,13 +172,13 @@ function Install-Prerequisites {
         Remove-Item -Path $VCLibsFile -Force
     }
 
-    #Check available WinGet version, if fail set version to the latest version as of 2023-10-08
+    #Check available WinGet version, if fail set version to the latest version as of 2024-04-29
     $WingetURL = 'https://api.github.com/repos/microsoft/winget-cli/releases/latest'
     try {
         $WinGetAvailableVersion = ((Invoke-WebRequest $WingetURL -UseBasicParsing | ConvertFrom-Json)[0].tag_name).Replace("v", "")
     }
     catch {
-        $WinGetAvailableVersion = "1.6.2771"
+        $WinGetAvailableVersion = "1.7.11132"
     }
 
     #Get installed Winget version
