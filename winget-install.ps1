@@ -172,6 +172,24 @@ function Install-Prerequisites {
         Remove-Item -Path $VCLibsFile -Force
     }
 
+    #Check if Microsoft.UI.Xaml.2.8 is installed (Req for WSB: https://learn.microsoft.com/en-us/windows/package-manager/winget/#install-winget-on-windows-sandbox)
+    if (!(Get-AppxPackage -Name 'Microsoft.UI.Xaml.2.8' -AllUsers)) {
+        Write-ToLog "Microsoft.UI.Xaml.2.8 is not installed" "Red"
+        $UIXamlUrl = "https://github.com/microsoft/microsoft-ui-xaml/releases/download/v2.8.6/Microsoft.UI.Xaml.2.8.x64.appx"
+        $UIXamlFile = "$env:TEMP\Microsoft.UI.Xaml.2.8.x64.appx"
+        Write-ToLog "-> Downloading $UIXamlUrl..."
+        Invoke-RestMethod -Uri $UIXamlUrl -OutFile $UIXamlFile
+        try {
+            Write-ToLog "-> Installing Microsoft.UI.Xaml.2.8..."
+            Add-AppxProvisionedPackage -Online -PackagePath $VCLibsFile -SkipLicense | Out-Null
+            Write-ToLog "-> Microsoft.UI.Xaml.2.8 installed successfully." "Green"
+        }
+        catch {
+            Write-ToLog "-> Failed to intall Microsoft.UI.Xaml.2.8..." "Red"
+        }
+        Remove-Item -Path $UIXamlFile -Force
+    }
+
     #Check available WinGet version, if fail set version to the latest version as of 2023-10-08
     $WingetURL = 'https://api.github.com/repos/microsoft/winget-cli/releases/latest'
     try {
