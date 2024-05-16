@@ -41,7 +41,8 @@ param(
     [Parameter(Mandatory = $True, ParameterSetName = "AppIDs")] [String[]] $AppIDs,
     [Parameter(Mandatory = $False)] [Switch] $Uninstall,
     [Parameter(Mandatory = $False)] [String] $LogPath,
-    [Parameter(Mandatory = $False)] [Switch] $WAUWhiteList
+    [Parameter(Mandatory = $False)] [Switch] $WAUWhiteList,
+    [Parameter(Mandatory = $False)] [Switch] $AllowUpgrade,
 )
 
 
@@ -302,7 +303,7 @@ function Test-ModsUninstall ($AppID) {
 #Install function
 function Install-App ($AppID, $AppArgs) {
     $IsInstalled = Confirm-Install $AppID
-    if (!($IsInstalled)) {
+    if (!($IsInstalled) -or $AllowUpgrade ) {
         #Check if mods exist (or already exist) for preinstall/install/installedonce/installed
         $ModsPreInstall, $ModsInstall, $ModsInstalledOnce, $ModsInstalled = Test-ModsInstall $($AppID)
 
