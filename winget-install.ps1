@@ -13,6 +13,9 @@ Forward Winget App ID to install. For multiple apps, separate with ",". Case sen
 .PARAMETER Uninstall
 To uninstall app. Works with AppIDs
 
+.PARAMETER AllowUpgrade
+To allow upgrade app if present. Works with AppIDs
+
 .PARAMETER LogPath
 Used to specify logpath. Default is same folder as Winget-Autoupdate project
 
@@ -34,6 +37,9 @@ If '-Uninstall' is used, it removes the app from WAU White List.
 
 .EXAMPLE
 .\winget-install.ps1 -AppIDs "7zip.7zip -v 22.00", "Notepad++.Notepad++"
+
+.EXAMPLE
+.\winget-install.ps1 -AppIDs "Notepad++.Notepad++" -AllowUpgrade
 #>
 
 [CmdletBinding()]
@@ -42,7 +48,7 @@ param(
     [Parameter(Mandatory = $False)] [Switch] $Uninstall,
     [Parameter(Mandatory = $False)] [String] $LogPath,
     [Parameter(Mandatory = $False)] [Switch] $WAUWhiteList,
-    [Parameter(Mandatory = $False)] [Switch] $AllowUpgrade,
+    [Parameter(Mandatory = $False)] [Switch] $AllowUpgrade
 )
 
 
