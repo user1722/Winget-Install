@@ -1,4 +1,7 @@
-# Winget-Install (Will be part of WAU - Work in progress)
+# Integrated to WAU
+https://github.com/Romanitho/Winget-AutoUpdate/blob/main/Sources/Winget-AutoUpdate/Winget-Install.ps1
+
+# Winget-Install
 Powershell scripts to install Winget Packages with SCCM/Intune (or similar) or even as standalone in system context (Inspired by [o-l-a-v](https://github.com/o-l-a-v) work)
 
 ## Install
