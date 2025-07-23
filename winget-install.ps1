@@ -5,7 +5,7 @@ Can be used standalone.
 
 .DESCRIPTION
 Allow to run Winget in System Context to install your apps.
-https://github.com/Romanitho/Winget-Install
+https://github.com/user1722/Winget-Install
 
 .PARAMETER AppIDs
 Forward Winget App ID to install. For multiple apps, separate with ",". Case sensitive.
@@ -20,7 +20,7 @@ To allow upgrade app if present. Works with AppIDs
 Used to specify logpath. Default is same folder as Winget-Autoupdate project
 
 .PARAMETER WAUWhiteList
-Adds the app to the Winget-AutoUpdate White List. More info: https://github.com/Romanitho/Winget-AutoUpdate
+Adds the app to the Winget-AutoUpdate White List. More info: https://github.com/user1722/Winget-AutoUpdate
 If '-Uninstall' is used, it removes the app from WAU White List.
 
 .EXAMPLE
@@ -185,7 +185,7 @@ function Install-Prerequisites {
         $WinGetAvailableVersion = ((Invoke-WebRequest $WingetURL -UseBasicParsing | ConvertFrom-Json)[0].tag_name).Replace("v", "")
     }
     catch {
-        $WinGetAvailableVersion = "1.7.11132"
+        $WinGetAvailableVersion = "1.11.400"
     }
 
     #Get installed Winget version
@@ -199,7 +199,7 @@ function Install-Prerequisites {
     }
 
     #Check if the available WinGet is newer than the installed
-    if ($WinGetAvailableVersion -gt $WinGetInstalledVersion) {
+    if ([Version]$WinGetAvailableVersion -gt [Version]$WinGetInstalledVersion) {
 
         Write-ToLog "-> Downloading Winget v$WinGetAvailableVersion"
         $WingetURL = "https://github.com/microsoft/winget-cli/releases/download/v$WinGetAvailableVersion/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
@@ -221,18 +221,31 @@ function Install-Prerequisites {
 }
 
 #Check if app is installed
-function Confirm-Install ($AppID) {
-    #Get "Winget List AppID"
-    $InstalledApp = & $winget list --Id $AppID -e --accept-source-agreements -s winget | Out-String
+Function Confirm-Installation ($AppName, $AppVer) {
 
-    #Return if AppID exists in the list
-    if ($InstalledApp -match [regex]::Escape($AppID)) {
+    #Set json export file
+    $JsonFile = "$env:TEMP\InstalledApps.json"
+
+    #Get installed apps and version in json file
+    & $Winget export -s winget -o $JsonFile --include-versions | Out-Null
+
+    #Get json content
+    $Json = Get-Content $JsonFile -Raw | ConvertFrom-Json
+
+    #Get apps and version in hashtable
+    $Packages = $Json.Sources.Packages
+
+    # Search for specific app and version
+    $Apps = $Packages | Where-Object { $_.PackageIdentifier -eq $AppName -and $_.Version -like "$AppVer*" }
+
+    if ($Apps) {
         return $true
     }
     else {
         return $false
     }
 }
+
 
 #Check if App exists in Winget Repository
 function Confirm-Exist ($AppID) {
@@ -308,7 +321,13 @@ function Test-ModsUninstall ($AppID) {
 
 #Install function
 function Install-App ($AppID, $AppArgs) {
-    $IsInstalled = Confirm-Install $AppID
+	# Versionsnummer aus den AppArgs extrahieren (wenn vorhanden)
+    $AppVersion = $null
+    if ($AppArgs -match "(?<=-v\s*)[\d\.]+") {
+        $AppVersion = $Matches[0]
+		write-host "extrahierte AppVersion $AppVersion"
+    }
+    $IsInstalled = Confirm-Installation -AppName $AppID -AppVer $AppVersion
     if (!($IsInstalled) -or $AllowUpgrade ) {
         #Check if mods exist (or already exist) for preinstall/install/installedonce/installed
         $ModsPreInstall, $ModsInstall, $ModsInstalledOnce, $ModsInstalled = Test-ModsInstall $($AppID)
@@ -316,8 +335,34 @@ function Install-App ($AppID, $AppArgs) {
         #If PreInstall script exist
         if ($ModsPreInstall) {
             Write-ToLog "-> Modifications for $AppID before install are being applied..." "Yellow"
-            & "$ModsPreInstall"
-        }
+		try {
+			& "$ModsPreInstall"
+			if ($LASTEXITCODE -ne 0) {
+				
+				if ($LASTEXITCODE -eq 101) {
+				throw "PreInstall script exited with code $LASTEXITCODE a important Program is still running"	
+				}
+				elseif ($LASTEXITCODE -eq 450) {
+				throw "PreInstall script exited with code $LASTEXITCODE a reboot is still required"	
+				}
+				else {
+				throw "PreInstall script exited with code $LASTEXITCODE"
+				}							
+			}
+		}
+		catch {
+			Write-ToLog "PreInstall for $AppID failed: $_" "Red"
+
+			# Benachrichtigung über Fehler senden
+			$Title = $NotifLocale.local.outputs.output[4].title -f $AppID
+			$Message = "Das Preinstall-Modul für $($app.Name) wurde mit abgebrochen: $_"
+			$MessageType = "error"
+			$Balise = $AppID
+			Start-NotifTask -Title $Title -Message $Message -MessageType $MessageType -Balise $Balise -Button1Action $ReleaseNoteURL -Button1Text $Button1Text
+
+			return  # Bricht die Funktion vollständig ab
+		}
+	}
 
         #Install App
         Write-ToLog "-> Installing $AppID..." "Yellow"
@@ -331,7 +376,7 @@ function Install-App ($AppID, $AppArgs) {
         }
 
         #Check if install is ok
-        $IsInstalled = Confirm-Install $AppID
+        $IsInstalled = Confirm-Installation -AppName $AppID -AppVer $AppVersion
         if ($IsInstalled) {
             Write-ToLog "-> $AppID successfully installed." "Green"
 
@@ -365,7 +410,7 @@ function Install-App ($AppID, $AppArgs) {
 
 #Uninstall function
 function Uninstall-App ($AppID, $AppArgs) {
-    $IsInstalled = Confirm-Install $AppID
+    $IsInstalled = Confirm-Installation $AppID
     if ($IsInstalled) {
         #Check if mods exist (or already exist) for preuninstall/uninstall/uninstalled
         $ModsPreUninstall, $ModsUninstall, $ModsUninstalled = Test-ModsUninstall $AppID
@@ -373,8 +418,34 @@ function Uninstall-App ($AppID, $AppArgs) {
         #If PreUninstall script exist
         if ($ModsPreUninstall) {
             Write-ToLog "-> Modifications for $AppID before uninstall are being applied..." "Yellow"
-            & "$ModsPreUninstall"
-        }
+		try {
+			& "$ModsPreUninstall"
+			if ($LASTEXITCODE -ne 0) {
+				
+				if ($LASTEXITCODE -eq 101) {
+				throw "PreUninstall script exited with code $LASTEXITCODE a important Program is still running"	
+				}
+				elseif ($LASTEXITCODE -eq 450) {
+				throw "PreUninstall script exited with code $LASTEXITCODE a reboot is still required"	
+				}
+				else {
+				throw "PreUninstall script exited with code $LASTEXITCODE"
+				}							
+			}
+		}
+		catch {
+			Write-ToLog "PreUninstall for $AppID failed: $_" "Red"
+
+			# Benachrichtigung über Fehler senden
+			$Title = $NotifLocale.local.outputs.output[4].title -f $AppID
+			$Message = "Das PreUninstall-Modul für $AppID wurde mit abgebrochen: $_"
+			$MessageType = "error"
+			$Balise = $AppID
+			Start-NotifTask -Title $Title -Message $Message -MessageType $MessageType -Balise $Balise -Button1Action $ReleaseNoteURL -Button1Text $Button1Text
+
+			return  # Bricht die Funktion vollständig ab
+		}
+	}
 
         #Uninstall App
         Write-ToLog "-> Uninstalling $AppID..." "Yellow"
@@ -388,12 +459,13 @@ function Uninstall-App ($AppID, $AppArgs) {
         }
 
         #Check if uninstall is ok
-        $IsInstalled = Confirm-Install $AppID
+        $IsInstalled = Confirm-Installation $AppID
         if (!($IsInstalled)) {
             Write-ToLog "-> $AppID successfully uninstalled." "Green"
             if ($ModsUninstalled) {
                 Write-ToLog "-> Modifications for $AppID after uninstall are being applied..." "Yellow"
                 & "$ModsUninstalled"
+				
             }
 
             #Remove mods if deployed from Winget-Install
@@ -529,8 +601,8 @@ Write-Host "`t        888d88888b888 888 888  88888 888  888 888" -ForegroundColo
 Write-Host "`t        88888P Y88888 888 888    888 888  888 888" -ForegroundColor Magenta
 Write-Host "`t        8888P   Y8888 888 Y88b  d88P Y88b 888 888" -ForegroundColor Cyan
 Write-Host "`t        888P     Y888 888  `"Y8888P88  `"Y88888 888`n" -ForegroundColor Cyan
-Write-Host "`t       https://github.com/Romanitho/Winget-Install" -ForegroundColor Magenta
-Write-Host "`t     https://github.com/Romanitho/Winget-Install-GUI`n" -ForegroundColor Cyan
+Write-Host "`t       https://github.com/user1722/Winget-Install" -ForegroundColor Magenta
+Write-Host "`t     https://github.com/user1722/Winget-Install-GUI`n" -ForegroundColor Cyan
 Write-Host "`t_________________________________________________________`n `n "
 
 #Log Header

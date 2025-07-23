@@ -1,5 +1,5 @@
 #Change app to detect [Application ID]
-$AppToDetect = "Notepad++.Notepad++"
+$AppToDetect = "Amazon.Corretto.18.JDK"
 
 
 <# FUNCTIONS #>
